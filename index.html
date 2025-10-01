@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>내 위치 지도 표시</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    /* 반응형 지도 스타일 */
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      text-align: center;
+    }
+    #map {
+      width: 100%;
+      height: 80vh; /* 화면 높이의 80% 차지 */
+    }
+    #status {
+      padding: 10px;
+      font-size: 14px;
+      background: #f0f0f0;
+      border-bottom: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="status">📍 위치 정보를 불러오는 중...</div>
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // 상태 메시지 출력 함수
+    function setStatus(msg) {
+      document.getElementById("status").innerText = msg;
+    }
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          setStatus("✅ 내 위치를 찾았습니다!");
+
+          // 지도 생성
+          const map = L.map("map").setView([lat, lng], 16);
+
+          // OpenStreetMap 타일 불러오기
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: "© OpenStreetMap"
+          }).addTo(map);
+
+          // 마커 표시
+          L.marker([lat, lng]).addTo(map)
+            .bindPopup("📍 내 위치")
+            .openPopup();
+        },
+        function(error) {
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              setStatus("❌ 위치 접근이 거부되었습니다.");
+              break;
+            case error.POSITION_UNAVAILABLE:
+              setStatus("❌ 위치 정보를 사용할 수 없습니다.");
+              break;
+            case error.TIMEOUT:
+              setStatus("⏱ 위치 요청 시간이 초과되었습니다.");
+              break;
+            default:
+              setStatus("⚠ 알 수 없는 오류가 발생했습니다.");
+          }
+        }
+      );
+    } else {
+      setStatus("❌ 이 브라우저는 위치 정보를 지원하지 않습니다.");
+    }
+  </script>
+</body>
+</html>
